@@ -566,16 +566,23 @@ export default function App() {
                   <div>
                     <h3 className="font-semibold text-base">Import Desired Artists, Albums & Tracks</h3>
                     <p className="text-xs text-slate-400 mt-0.5">
-                      Upload CSV, YAML, or JSON files, validate entries, edit inline, and save as reusable projects.
+                      Upload standard CSV, Spotify / Exportify CSV, TuneMyMusic CSV, YAML, or JSON files, validate entries, edit inline, and save as reusable projects.
                     </p>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <a
                       href="/api/v1/imports/templates/csv"
                       download
                       className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200"
                     >
                       Download CSV Template
+                    </a>
+                    <a
+                      href="/api/v1/imports/templates/spotify"
+                      download
+                      className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-emerald-300"
+                    >
+                      Download Spotify CSV Template
                     </a>
                     <a
                       href="/api/v1/imports/templates/yaml"

@@ -25,8 +25,26 @@ def _clean_key_text(value: str) -> str:
     return re.sub(r"\s+", " ", text).strip()
 
 
+def extract_primary_artist(artist: str) -> str:
+    """Extract the primary artist from a multi-artist string (e.g. 'Eminem, Juice WRLD' -> 'Eminem'),
+    while preserving suffixes like 'Jr.' or band names like 'Earth, Wind & Fire'.
+    """
+    raw = (artist or "").replace("\\,", ",").strip()
+    if "," not in raw:
+        return raw
+    parts = [p.strip() for p in raw.split(",") if p.strip()]
+    if len(parts) <= 1:
+        return raw
+    second_lower = parts[1].lower().rstrip(".")
+    if second_lower in {"jr", "sr", "ii", "iii", "iv", "inc", "ltd"}:
+        return f"{parts[0]}, {parts[1]}"
+    if "&" in parts[1] or parts[1].lower().startswith("and "):
+        return f"{parts[0]}, {parts[1]}"
+    return parts[0]
+
+
 def build_duplicate_group_key(artist: str, album: str) -> str:
-    a_clean = _clean_key_text(artist) or "unknown"
+    a_clean = _clean_key_text(extract_primary_artist(artist)) or "unknown"
     b_clean = _clean_key_text(album) or "unknown"
     return f"{a_clean}::{b_clean}"
 
@@ -42,12 +60,21 @@ def compute_match_score(
     scores: List[float] = []
     if query_artist:
         q_a = _clean_key_text(query_artist)
+        q_primary = _clean_key_text(extract_primary_artist(query_artist))
         r_a = _clean_key_text(result_artist)
         r_alb = _clean_key_text(result_album)
         if q_a and (q_a in r_a or r_a in q_a or q_a in r_alb):
             scores.append(1.0)
+        elif q_primary and (q_primary in r_a or r_a in q_primary or q_primary in r_alb):
+            scores.append(1.0)
         else:
-            scores.append(max(SequenceMatcher(None, q_a, r_a).ratio(), SequenceMatcher(None, q_a, r_alb).ratio()))
+            scores.append(
+                max(
+                    SequenceMatcher(None, q_a, r_a).ratio(),
+                    SequenceMatcher(None, q_a, r_alb).ratio(),
+                    SequenceMatcher(None, q_primary, r_a).ratio() if q_primary else 0.0,
+                )
+            )
 
     if query_album:
         q_b = _clean_key_text(query_album)
@@ -308,8 +335,10 @@ class SearchEngine:
         sem: asyncio.Semaphore,
         eff_settings: Dict[str, Any],
     ) -> List[NormalizedRelease]:
+        effective_artist = extract_primary_artist(artist)
+
         async def run_one_source(src_id: str) -> List[NormalizedRelease]:
-            cached = search_cache.get(src_id, artist, album, track)
+            cached = search_cache.get(src_id, effective_artist, album, track)
             if cached is not None:
                 return cached
 
@@ -320,8 +349,8 @@ class SearchEngine:
             async with sem:
                 try:
                     # Album-first search: if searching artist+album, query album first
-                    res = await adapter.search(artist=artist, album=album, track=track, limit=8)
-                    search_cache.set(src_id, artist, album, track, res)
+                    res = await adapter.search(artist=effective_artist, album=album, track=track, limit=8)
+                    search_cache.set(src_id, effective_artist, album, track, res)
                     return res
                 except Exception as exc:
                     log_event(

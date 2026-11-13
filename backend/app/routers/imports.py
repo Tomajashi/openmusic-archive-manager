@@ -32,9 +32,12 @@ async def preview_import_file(
     if file is not None:
         raw_bytes = await file.read()
         try:
-            content = raw_bytes.decode("utf-8")
-        except UnicodeDecodeError as exc:
-            raise HTTPException(status_code=400, detail="File must be UTF-8 encoded text.") from exc
+            content = raw_bytes.decode("utf-8-sig")
+        except UnicodeDecodeError:
+            try:
+                content = raw_bytes.decode("cp1252")
+            except UnicodeDecodeError as exc:
+                raise HTTPException(status_code=400, detail="File must be UTF-8 encoded text.") from exc
         if not fmt and file.filename and "." in file.filename:
             fmt = file.filename.rsplit(".", 1)[-1]
     elif raw_content:
@@ -43,10 +46,11 @@ async def preview_import_file(
         raise HTTPException(status_code=400, detail="Provide either an uploaded file or raw_content.")
 
     if not fmt:
-        stripped = content.lstrip()
+        stripped = content.lstrip("\ufeff").lstrip()
+        first_line = stripped.splitlines()[0] if stripped.splitlines() else ""
         if stripped.startswith("{") or stripped.startswith("["):
             fmt = "JSON"
-        elif "," in stripped.splitlines()[0]:
+        elif any(sep in first_line for sep in (",", ";", "\t")):
             fmt = "CSV"
         else:
             fmt = "YAML"
