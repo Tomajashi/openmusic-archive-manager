@@ -1,0 +1,21 @@
+{
+  "artists": [
+    {
+      "name": "Daft Punk",
+      "albums": ["Discovery", "Random Access Memories"],
+      "tracks": ["One More Time", "Get Lucky"]
+    },
+    {
+      "name": "Pink Floyd",
+      "albums": ["The Dark Side of the Moon"]
+    },
+    {
+      "name": "Grateful Dead",
+      "albums": ["Cornell 1977-05-08"]
+    },
+    {
+      "name": "Johann Sebastian Bach",
+      "albums": ["Goldberg Variations"]
+    }
+  ]
+}
