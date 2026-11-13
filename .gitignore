@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Node / Frontend
+node_modules/
+frontend/dist/
+frontend/.vite/
+*.tsbuildinfo
+
+# Local runtime & storage
+.env
+config/*.db
+config/*.db-journal
+config/*.db-wal
+config/*.db-shm
+downloads/*
+!downloads/.gitkeep
+music/*
+!music/.gitkeep
+logs/*
+!logs/.gitkeep
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
