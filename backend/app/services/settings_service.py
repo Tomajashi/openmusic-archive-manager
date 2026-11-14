@@ -9,6 +9,7 @@ SECRET_KEYS = {
     "torznab_api_key",
     "qbittorrent_password",
     "navidrome_password",
+    "flacmusicfinder_cookie",
 }
 
 DEFAULT_ENABLED_SOURCES = [
@@ -46,6 +47,13 @@ def get_default_settings_dict() -> Dict[str, Any]:
         "qbittorrent_username": settings.qbittorrent_username,
         "qbittorrent_password": settings.qbittorrent_password,
         "transmission_url": settings.transmission_url,
+        "flacmusicfinder_enabled": settings.flacmusicfinder_enabled,
+        "flacmusicfinder_base_url": settings.flacmusicfinder_base_url,
+        "flacmusicfinder_cookie": settings.flacmusicfinder_cookie,
+        "flacmusicfinder_search_path": settings.flacmusicfinder_search_path,
+        "flacmusicfinder_user_agent": settings.flacmusicfinder_user_agent,
+        "flacmusicfinder_max_details": settings.flacmusicfinder_max_details,
+        "flacmusicfinder_extra_download_hosts": settings.flacmusicfinder_extra_download_hosts,
         "navidrome_enabled": settings.navidrome_enabled,
         "navidrome_url": settings.navidrome_url,
         "navidrome_user": settings.navidrome_user,
@@ -100,4 +108,9 @@ def get_enabled_sources(db: Session) -> List[str]:
     sources = eff.get("enabled_sources", DEFAULT_ENABLED_SOURCES)
     if not eff.get("piratebay_enabled", True) and "piratebay" in sources:
         sources = [s for s in sources if s != "piratebay"]
+    # FLAC Music Finder is opt-in: it is only searched when explicitly switched on.
+    if eff.get("flacmusicfinder_enabled", False) and "flacmusicfinder" not in sources:
+        sources = list(sources) + ["flacmusicfinder"]
+    elif not eff.get("flacmusicfinder_enabled", False):
+        sources = [s for s in sources if s != "flacmusicfinder"]
     return list(sources)

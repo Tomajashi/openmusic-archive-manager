@@ -21,6 +21,7 @@
    - **Jamendo Music** (`jamendo.com`)
    - **Musopen Classical** (`musopen.org`)
    - **PirateBay / Torrent P2P** (`apibay.org` / Torznab)
+   - **FLAC Music Finder** (`flacmusicfinder.top`, opt-in cookie source — see section 6)
 4. Toggle **Strict Lossless Filter** if you only want FLAC/WAV releases.
 5. Searches run asynchronously in the background so you can continue browsing.
 
@@ -32,7 +33,7 @@
    - Source archive, primary format (`FLAC`, `WAV`, `MP3`), bit depth & sample rate (`16-bit / 44.1 kHz`, `24-bit / 96.0 kHz`), track count, total size, and license/trading permissions.
    - For P2P torrents, active **Seeders / Leechers** and magnet availability are shown.
 3. If the same album was found on multiple archives, click **Compare N Duplicate Releases** to compare quality, track count, and licenses side-by-side.
-4. Click **View Tracks** to inspect individual tracks and select specific tracks, or click **Select Album** to select the entire release.
+4. Click **View Tracks** to inspect individual tracks and select specific tracks, or click **Select Album** to select the entire release. For sources that advertise an album page instead of individual files (P2P torrents and the FLAC Music Finder web index), this is where the actual track links are discovered.
 5. Click **Review & Approve** in the top bar and confirm in the approval dialog. **Nothing is ever downloaded without your explicit approval.**
 
 ---
@@ -58,3 +59,34 @@
    ```
 2. MusicBrainz and Cover Art Archive metadata are embedded automatically when enabled.
 3. Click **Trigger Navidrome Rescan** in **Music Library** (or enable automatic rescan in **Settings**) to immediately update your Navidrome server.
+
+---
+
+## 6. Optional Cookie Source: FLAC Music Finder
+
+`flacmusicfinder.top` sits behind a bot challenge, so this source is **disabled by default** and
+replays your own browser session instead of trying to get around that challenge. Use it only for
+material you have the right to download.
+
+1. Open **Settings** and find the **FLAC Music Finder (Web Index)** card.
+2. Sign in to the site in your browser, then open DevTools (`F12`) → **Network**, reload the page,
+   and copy the `cookie` request header (right-click the request → **Copy** → **Copy value**).
+3. Paste that value into the **Session Cookie** field. It is stored like a secret: the API returns
+   it masked as `********` and only ever `flacmusicfinder_cookie_configured: true` is exposed.
+4. In the same card you can set the **Base URL**, the **Search Path** (a path or full URL containing
+   `{query}`; leave it empty to let the app guess), the **User Agent** (paste your own if the cookie
+   came from another browser), and **Extra Download Hosts** if the files are served from another
+   domain.
+5. Tick **Enable** (or use the toggle in the sources list) and run a search as usual.
+
+Notes:
+
+- If the search fails, the error message tells you what to do. "No session cookie configured"
+  means you need step 3; "still returned the bot challenge page" means the cookie is missing the
+  authentication part or has expired; "rejected as not logged in" means it has expired.
+- Results keep the `ACCOUNT_REQUIRED` badge until the app finds direct file links (or a
+  `ZIP`/`FLAC`/`RAR`/… bundle) on the album page. Use **View Tracks** to attach individual tracks.
+- On download, the cookie is sent only to the site's own host and is dropped automatically if the
+  file host redirects elsewhere. If a download is refused with a message about an unapproved host,
+  add that host to **Extra Download Hosts**.
+

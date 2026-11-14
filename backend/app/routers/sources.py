@@ -63,5 +63,8 @@ def toggle_source(source_id: str, db: Session = Depends(get_db)) -> Dict[str, An
     updates: Dict[str, Any] = {"enabled_sources": new_enabled}
     if source_id == "piratebay":
         updates["piratebay_enabled"] = state
+    elif source_id == "flacmusicfinder":
+        # get_enabled_sources() treats flacmusicfinder_enabled as the authoritative switch.
+        updates["flacmusicfinder_enabled"] = state
     update_settings(db, updates)
     return {"id": source_id, "enabled": state, "enabled_sources": new_enabled}

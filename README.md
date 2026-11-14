@@ -14,6 +14,7 @@
   4. **Jamendo** (`api.jamendo.com/v3.0` — album & track search with verified FLAC/MP3 capability checks)
   5. **Musopen** (`musopen.org` — classical recordings & public domain catalog search with explicit account/subscription requirement notices)
   6. **PirateBay / Torrent P2P Indexer** (`apibay.org` Categories 104=FLAC & 101=Audio + optional qBittorrent/Transmission handoff and `.magnet` watch-folder export)
+  7. **FLAC Music Finder Web Index** (`flacmusicfinder.top` — **opt-in, disabled by default**: replays a session cookie you copy from your own browser to read that site's search pages and collect per-file links; the site's JavaScript bot challenge is never bypassed)
 - **Strict User Approval Gate**: Never downloads anything automatically; users inspect tracklists, formats, bit depth, sample rate, file sizes, duplicate releases across archives, and licenses before approving downloads.
 - **True Lossless Verification with FFprobe**: Every downloaded audio file is audited using `ffprobe` and MD5/SHA1 checksums. Flags fake FLACs (`FLAC_CONTAINING_LOSSY_AUDIO`), missing metadata, incomplete downloads, and corrupt streams without ever silently re-encoding lossy files.
 - **Automated Library Organization & Navidrome Sync**: Enriches tags via **MusicBrainz** and **Cover Art Archive**, organizes tracks into `/music/Artist/Album (Year)/01 - Track.flac` with `cover.jpg`, and optionally triggers a Navidrome Subsonic library scan.

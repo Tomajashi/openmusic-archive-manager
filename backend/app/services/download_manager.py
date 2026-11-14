@@ -6,6 +6,11 @@ from typing import Dict, List, Optional
 from urllib.parse import urlparse
 import httpx
 from sqlalchemy.orm import Session
+from backend.app.adapters.flac_music_finder import (
+    cookie_strip_hook,
+    download_request_headers,
+    flacmusicfinder_download_hosts,
+)
 from backend.app.database import SessionLocal
 from backend.app.models import (
     DownloadJob,
@@ -35,7 +40,7 @@ TRUSTED_DOWNLOAD_DOMAINS = (
 )
 
 
-def is_trusted_download_url(url: str) -> bool:
+def is_trusted_download_url(url: str, extra_domains: Optional[List[str]] = None) -> bool:
     if not url:
         return False
     if url.startswith("magnet:?xt=urn:btih:"):
@@ -44,7 +49,8 @@ def is_trusted_download_url(url: str) -> bool:
     if parsed.scheme not in {"http", "https"}:
         return False
     host = (parsed.hostname or "").lower()
-    return any(host == d or host.endswith(f".{d}") for d in TRUSTED_DOWNLOAD_DOMAINS)
+    allowed = tuple(TRUSTED_DOWNLOAD_DOMAINS) + tuple(d for d in (extra_domains or []) if d)
+    return any(host == d or host.endswith(f".{d}") for d in allowed)
 
 
 class DownloadManager:
@@ -284,7 +290,12 @@ class DownloadManager:
                     session.commit()
                     return
 
-                if not is_trusted_download_url(job.download_url):
+                # Optional cookie-gated sources bring their own hosts and request headers.
+                is_web_index_job = (job.source or "") == "flacmusicfinder" and bool(eff.get("flacmusicfinder_enabled"))
+                extra_hosts = list(flacmusicfinder_download_hosts(eff)) if is_web_index_job else []
+                source_headers = download_request_headers(eff) if is_web_index_job else None
+
+                if not is_trusted_download_url(job.download_url, extra_hosts):
                     job.status = "FAILED"
                     job.error_message = "Blocked untrusted download URL domain."
                     session.commit()
@@ -307,7 +318,7 @@ class DownloadManager:
                 job.status = "DOWNLOADING"
                 session.commit()
 
-                success = await self._stream_http_download(session, job, temp_file)
+                success = await self._stream_http_download(session, job, temp_file, extra_headers=source_headers)
                 if not success:
                     return
 
@@ -476,7 +487,11 @@ class DownloadManager:
         job: DownloadJob,
         temp_file: Path,
         max_retries: int = 3,
+        extra_headers: Optional[Dict[str, str]] = None,
     ) -> bool:
+        origin_host = (urlparse(job.download_url or "").hostname or "").lower()
+        sends_cookie = bool(extra_headers) and any(k.lower() == "cookie" for k in extra_headers)
+        event_hooks = {"request": [cookie_strip_hook(origin_host)]} if sends_cookie else {}
         for attempt in range(max_retries):
             if self._cancel_flags.get(job.id):
                 job.status = "CANCELLED"
@@ -491,11 +506,17 @@ class DownloadManager:
             headers = {
                 "User-Agent": "OpenMusicArchiveManager/1.0 (self-hosted music manager)",
             }
+            if extra_headers:
+                headers.update(extra_headers)
             if existing_bytes > 0:
                 headers["Range"] = f"bytes={existing_bytes}-"
 
             try:
-                async with httpx.AsyncClient(timeout=60.0, follow_redirects=True) as client:
+                async with httpx.AsyncClient(
+                    timeout=60.0,
+                    follow_redirects=True,
+                    event_hooks=event_hooks,
+                ) as client:
                     async with client.stream("GET", job.download_url, headers=headers) as resp:
                         if resp.status_code == 416:
                             # Range already satisfied

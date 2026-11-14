@@ -6,6 +6,7 @@ from backend.app.adapters.wikimedia import WikimediaCommonsAdapter
 from backend.app.adapters.jamendo import JamendoAdapter
 from backend.app.adapters.musopen import MusopenAdapter
 from backend.app.adapters.piratebay import PirateBayAdapter
+from backend.app.adapters.flac_music_finder import FlacMusicFinderAdapter
 
 
 class AdapterRegistry:
@@ -17,6 +18,7 @@ class AdapterRegistry:
         self.register(JamendoAdapter())
         self.register(MusopenAdapter())
         self.register(PirateBayAdapter())
+        self.register(FlacMusicFinderAdapter())
 
     def register(self, adapter: BaseSourceAdapter) -> None:
         self._adapters[adapter.source_id] = adapter

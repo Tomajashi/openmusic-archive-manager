@@ -145,7 +145,13 @@ async def test_download_approval_gate_interruption_failure_and_success(
     _generate_audio_file(sample_flac, ["-c:a", "flac", "-sample_fmt", "s16"])
     flac_bytes = sample_flac.read_bytes()
 
-    async def mock_stream_http(session: Session, job: DownloadJob, temp_file: Path, max_retries: int = 3) -> bool:
+    async def mock_stream_http(
+        session: Session,
+        job: DownloadJob,
+        temp_file: Path,
+        max_retries: int = 3,
+        **kwargs,
+    ) -> bool:
         if "fail" in job.download_url:
             job.status = "FAILED"
             job.retries = 3

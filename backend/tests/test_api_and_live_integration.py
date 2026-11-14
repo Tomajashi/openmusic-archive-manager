@@ -3,6 +3,7 @@ from httpx import ASGITransport
 import pytest
 from backend.app.adapters.internet_archive import InternetArchiveAdapter
 from backend.app.adapters.wikimedia import WikimediaCommonsAdapter
+from backend.app.config import settings
 from backend.app.main import app
 
 
@@ -25,6 +26,7 @@ async def test_fastapi_endpoints():
         assert "jamendo" in source_ids
         assert "musopen" in source_ids
         assert "piratebay" in source_ids
+        assert "flacmusicfinder" in source_ids
 
         # 3. Settings secret masking check
         r_set_put = await client.put(
@@ -73,6 +75,44 @@ async def test_fastapi_endpoints():
         # Cleanup project
         r_del = await client.delete(f"/api/v1/imports/projects/{proj_id}")
         assert r_del.status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_flacmusicfinder_source_is_opt_in_and_masks_cookie():
+    transport = ASGITransport(app=app)
+    async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+        r_set = await client.put(
+            "/api/v1/settings",
+            json={
+                "flacmusicfinder_cookie": "PHPSESSID=session_value",
+                "flacmusicfinder_max_details": 3,
+            },
+        )
+        assert r_set.status_code == 200
+        payload = r_set.json()
+        assert payload["flacmusicfinder_cookie"] == "********"
+        assert payload["flacmusicfinder_cookie_configured"] is True
+        assert payload["flacmusicfinder_enabled"] is False
+        assert payload["flacmusicfinder_max_details"] == 3
+
+        sources = await client.get("/api/v1/sources")
+        entry = next(item for item in sources.json() if item["id"] == "flacmusicfinder")
+        assert entry["enabled"] is False
+
+        r_on = await client.post("/api/v1/sources/flacmusicfinder/toggle")
+        assert r_on.status_code == 200
+        assert r_on.json()["enabled"] is True
+        assert "flacmusicfinder" in r_on.json()["enabled_sources"]
+
+        # ... and switch it back off again so no later test searches an opt-in source.
+        r_off = await client.post("/api/v1/sources/flacmusicfinder/toggle")
+        assert r_off.status_code == 200
+        assert r_off.json()["enabled"] is False
+        assert "flacmusicfinder" not in r_off.json()["enabled_sources"]
+        assert settings.flacmusicfinder_enabled is False
+
+        await client.put("/api/v1/settings", json={"flacmusicfinder_cookie": ""})
+        assert settings.flacmusicfinder_cookie == ""
 
 
 @pytest.mark.asyncio

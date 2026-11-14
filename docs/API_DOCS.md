@@ -54,7 +54,7 @@ Starts an asynchronous parallel search job across enabled source adapters.
   "album": "Cornell 1977-05-08",
   "track": "",
   "project_id": null,
-  "sources": ["internet_archive", "etree", "wikimedia", "jamendo", "musopen", "piratebay"],
+  "sources": ["internet_archive", "etree", "wikimedia", "jamendo", "musopen", "piratebay", "flacmusicfinder"],
   "lossless_only": true
 }
 ```
@@ -103,6 +103,6 @@ Triggers a Navidrome Subsonic library scan (`/rest/startScan.view`).
 ## Sources, Settings & Logs
 
 - `GET /api/v1/sources` — List all source adapters and capabilities.
-- `POST /api/v1/sources/{source_id}/toggle` — Enable/disable a music source adapter.
-- `GET /api/v1/settings` & `PUT /api/v1/settings` — Read/update persistent settings (API keys are masked on read).
+- `POST /api/v1/sources/{source_id}/toggle` — Enable/disable a music source adapter. Takes no request body and returns `{"id", "enabled", "enabled_sources"}`. `flacmusicfinder` is off until this is called with it.
+- `GET /api/v1/settings` & `PUT /api/v1/settings` — Read/update persistent settings (API keys and `flacmusicfinder_cookie` are masked as `********` on read, alongside a `<key>_configured` boolean).
 - `GET /api/v1/logs` & `DELETE /api/v1/logs` — Inspect or clear system/audit logs.

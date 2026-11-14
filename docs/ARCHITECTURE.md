@@ -27,6 +27,7 @@ flowchart TD
         JM["Jamendo v3.0 Adapter"]
         MO["Musopen Classical Adapter"]
         PB["PirateBay (apibay) / Torznab P2P Adapter"]
+        FMF["FLAC Music Finder Cookie Web Index Adapter (opt-in)"]
     end
 
     UI <--> API
@@ -42,6 +43,8 @@ flowchart TD
     SE --> JM
     SE --> MO
     SE --> PB
+    SE --> FMF
+    DM -.->|Cookie replay| FMF
     DM --> AV
     AV --> ORG
     ORG --> NAV
@@ -71,3 +74,8 @@ flowchart TD
 5. **NAS & Navidrome Compatibility**:
    - Organizes verified tracks into `/music/{Artist}/{Album (Year)}/{TrackNum} - {Title}.{ext}` with `cover.jpg`.
    - Embeds MusicBrainz tags where enabled and triggers Navidrome's Subsonic `/rest/startScan` endpoint upon completion.
+
+6. **Opt-In Credentialed (Cookie-Replay) Sources**:
+   - `FlacMusicFinderAdapter` reaches an HTML web index that sits behind a bot challenge. It replays a session cookie that the operator exported from their own browser; the challenge is **detected** (via `_CHALLENGE_MARKERS` and "logged out" page markers) and reported as an actionable error — it is never solved or bypassed.
+   - The source is disabled by default and the cookie lives in `SECRET_KEYS`, so it is masked on every read endpoint.
+   - Two runtime guards keep the credential contained: `cookie_strip_hook` deletes the cookie from any request that leaves the site's own host (used both while searching and while downloading), and hosts taken from the site's file links are added to the download allow list only while the source is enabled (`flacmusicfinder_download_hosts`).

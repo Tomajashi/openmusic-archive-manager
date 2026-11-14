@@ -51,6 +51,7 @@ const SOURCE_LABELS: Record<string, string> = {
   jamendo: 'Jamendo Music',
   musopen: 'Musopen Classical',
   piratebay: 'PirateBay / Torrent P2P',
+  flacmusicfinder: 'FLAC Music Finder (Web Index)',
 };
 
 export default function App() {
@@ -1934,6 +1935,121 @@ export default function App() {
                       value={String(settingsData.qbittorrent_url || '')}
                       onChange={(e) =>
                         setSettingsData({ ...settingsData, qbittorrent_url: e.target.value })
+                      }
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs font-mono"
+                    />
+                  </div>
+                </div>
+
+                {/* FLAC Music Finder / Web Index Settings */}
+                <div className="space-y-3 pt-4 border-t border-slate-800">
+                  <h4 className="text-sm font-semibold text-orange-400">
+                    FLAC Music Finder (Web Index) Integration
+                  </h4>
+                  <p className="text-xs text-slate-500">
+                    Optional. The site sits behind Cloudflare and serves a JavaScript bot challenge to
+                    automated clients, so this adapter never bypasses it: it replays the session cookie you
+                    copy from your own logged-in browser. Leave it disabled if you prefer not to share a
+                    session, and always verify download rights for commercial releases.
+                  </p>
+                  <label className="flex items-center gap-2 text-xs text-slate-200">
+                    <input
+                      type="checkbox"
+                      checked={Boolean(settingsData.flacmusicfinder_enabled ?? false)}
+                      onChange={(e) =>
+                        setSettingsData({
+                          ...settingsData,
+                          flacmusicfinder_enabled: e.target.checked,
+                        })
+                      }
+                    />
+                    <span>Enable FLAC Music Finder Web Index Adapter</span>
+                  </label>
+                  <div>
+                    <label className="block text-xs text-slate-400 mb-1">
+                      Browser Session Cookie (Masked)
+                    </label>
+                    <textarea
+                      rows={3}
+                      spellCheck={false}
+                      value={String(settingsData.flacmusicfinder_cookie || '')}
+                      onChange={(e) =>
+                        setSettingsData({ ...settingsData, flacmusicfinder_cookie: e.target.value })
+                      }
+                      placeholder="name=value; sessionid=value (from DevTools &gt; Network &gt; Request Headers)"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs font-mono resize-y"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-slate-400 mb-1">Index Base URL</label>
+                    <input
+                      type="text"
+                      value={String(settingsData.flacmusicfinder_base_url || 'https://flacmusicfinder.top')}
+                      onChange={(e) =>
+                        setSettingsData({ ...settingsData, flacmusicfinder_base_url: e.target.value })
+                      }
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-slate-400 mb-1">
+                      Search Path Override (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="/search?q={query}"
+                      value={String(settingsData.flacmusicfinder_search_path || '')}
+                      onChange={(e) =>
+                        setSettingsData({ ...settingsData, flacmusicfinder_search_path: e.target.value })
+                      }
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-slate-400 mb-1">
+                      Request User-Agent (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Defaults to the bundled desktop Chrome user-agent"
+                      value={String(settingsData.flacmusicfinder_user_agent || '')}
+                      onChange={(e) =>
+                        setSettingsData({ ...settingsData, flacmusicfinder_user_agent: e.target.value })
+                      }
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-slate-400 mb-1">
+                      Extra Download Hosts (Comma Separated)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="files.example-host.net"
+                      value={String(settingsData.flacmusicfinder_extra_download_hosts || '')}
+                      onChange={(e) =>
+                        setSettingsData({
+                          ...settingsData,
+                          flacmusicfinder_extra_download_hosts: e.target.value,
+                        })
+                      }
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-slate-400 mb-1">
+                      Result Pages Opened Per Search (0-20)
+                    </label>
+                    <input
+                      type="number"
+                      min={0}
+                      max={20}
+                      value={Number(settingsData.flacmusicfinder_max_details ?? 5)}
+                      onChange={(e) =>
+                        setSettingsData({
+                          ...settingsData,
+                          flacmusicfinder_max_details: Number(e.target.value),
+                        })
                       }
                       className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs font-mono"
                     />

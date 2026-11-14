@@ -55,6 +55,15 @@ class Settings(BaseSettings):
     qbittorrent_password: str = ""
     transmission_url: str = ""
 
+    # FLAC Music Finder (cookie-gated FLAC web index, opt-in)
+    flacmusicfinder_enabled: bool = False
+    flacmusicfinder_base_url: str = "https://flacmusicfinder.top"
+    flacmusicfinder_cookie: str = ""
+    flacmusicfinder_search_path: str = ""
+    flacmusicfinder_user_agent: str = ""
+    flacmusicfinder_max_details: int = 5
+    flacmusicfinder_extra_download_hosts: str = ""
+
     # Navidrome integration
     navidrome_enabled: bool = False
     navidrome_url: str = ""
